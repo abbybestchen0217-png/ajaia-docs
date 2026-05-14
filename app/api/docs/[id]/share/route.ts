@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+
+function isPrismaUniqueViolation(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code: unknown }).code === "P2002"
+  );
+}
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -51,7 +59,7 @@ export async function POST(request: Request, context: RouteContext) {
     });
     return NextResponse.json(share, { status: 201 });
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+    if (isPrismaUniqueViolation(e)) {
       return NextResponse.json({ error: "Document is already shared with this user" }, { status: 409 });
     }
     throw e;
