@@ -35,7 +35,7 @@ function parseInitialContent(raw: string): JSONContent | string {
   const lines = raw.split(/\n/);
   return {
     type: "doc",
-    content: lines.map((line) => ({
+    content: lines.map((line: string) => ({
       type: "paragraph",
       content: line.length ? [{ type: "text", text: line }] : [],
     })),

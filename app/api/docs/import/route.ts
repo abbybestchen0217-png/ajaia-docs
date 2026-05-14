@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+function isUploadedFileField(value: unknown): value is { name: string; text(): Promise<string> } {
+  if (value === null || typeof value === "string") return false;
+  if (typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.name === "string" && typeof v.text === "function";
+}
+
 function titleFromFilename(name: string) {
   const base = name.replace(/\\/g, "/").split("/").pop() ?? name;
   return base.replace(/\.(txt|md)$/i, "").trim() || "Imported Document";
@@ -15,16 +22,16 @@ export async function POST(request: Request) {
   }
 
   const userId = formData.get("userId");
-  const file = formData.get("file");
+  const fileField = formData.get("file");
 
   if (!userId || typeof userId !== "string") {
     return NextResponse.json({ error: "userId field is required" }, { status: 400 });
   }
-  if (!(file instanceof File)) {
+  if (!isUploadedFileField(fileField)) {
     return NextResponse.json({ error: "file field is required" }, { status: 400 });
   }
 
-  const name = file.name.toLowerCase();
+  const name = fileField.name.toLowerCase();
   if (!name.endsWith(".txt") && !name.endsWith(".md")) {
     return NextResponse.json({ error: "Only .txt and .md files are allowed" }, { status: 400 });
   }
@@ -34,8 +41,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const text = await file.text();
-  const title = titleFromFilename(file.name);
+  const text = await fileField.text();
+  const title = titleFromFilename(fileField.name);
 
   const document = await prisma.document.create({
     data: {

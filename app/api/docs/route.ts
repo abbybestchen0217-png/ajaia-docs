@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-import type { Document } from "@prisma/client";
+import type { DocumentListFields } from "@/lib/api-types";
 import { prisma } from "@/lib/prisma";
-
-type DocumentListFields = Pick<
-  Document,
-  "id" | "title" | "createdAt" | "updatedAt" | "ownerId"
->;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -19,7 +14,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const [owned, shared] = await Promise.all([
+  const [owned, shared] = (await Promise.all([
     prisma.document.findMany({
       where: { ownerId: userId },
       orderBy: { updatedAt: "desc" },
@@ -45,11 +40,11 @@ export async function GET(request: Request) {
         ownerId: true,
       },
     }),
-  ]);
+  ])) as [DocumentListFields[], DocumentListFields[]];
 
   const documents = [
-    ...owned.map((d: DocumentListFields) => ({ ...d, isOwner: true })),
-    ...shared.map((d: DocumentListFields) => ({ ...d, isOwner: false })),
+    ...owned.map((d) => ({ ...d, isOwner: true as const })),
+    ...shared.map((d) => ({ ...d, isOwner: false as const })),
   ];
 
   return NextResponse.json(documents);

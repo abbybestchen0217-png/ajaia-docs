@@ -136,7 +136,7 @@ export default function HomePage() {
             disabled={loadingUsers || users.length === 0}
             onChange={(e) => onUserChange(e.target.value)}
           >
-            {users.map((u) => (
+            {users.map((u: User) => (
               <option key={u.id} value={u.id}>
                 {u.name}
               </option>
@@ -185,7 +185,7 @@ export default function HomePage() {
                   {myDocs.length === 0 ? (
                     <li className="text-sm text-zinc-400">None yet</li>
                   ) : (
-                    myDocs.map((d) => (
+                    myDocs.map((d: DocListItem) => (
                       <li key={d.id}>
                         <Link
                           href={`/doc/${d.id}`}
@@ -206,7 +206,7 @@ export default function HomePage() {
                   {sharedDocs.length === 0 ? (
                     <li className="text-sm text-zinc-400">None</li>
                   ) : (
-                    sharedDocs.map((d) => (
+                    sharedDocs.map((d: DocListItem) => (
                       <li key={d.id}>
                         <Link
                           href={`/doc/${d.id}`}
