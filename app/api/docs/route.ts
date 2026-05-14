@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
+import type { Document } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+
+type DocumentListFields = Pick<
+  Document,
+  "id" | "title" | "createdAt" | "updatedAt" | "ownerId"
+>;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -42,8 +48,8 @@ export async function GET(request: Request) {
   ]);
 
   const documents = [
-    ...owned.map((d) => ({ ...d, isOwner: true })),
-    ...shared.map((d) => ({ ...d, isOwner: false })),
+    ...owned.map((d: DocumentListFields) => ({ ...d, isOwner: true })),
+    ...shared.map((d: DocumentListFields) => ({ ...d, isOwner: false })),
   ];
 
   return NextResponse.json(documents);
