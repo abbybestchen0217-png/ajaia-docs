@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import type { PublicUser } from "@/lib/api-types";
-import { prisma } from "@/lib/prisma";
+import { pool } from "@/lib/prisma";
 
 export async function GET() {
-  const users = (await prisma.user.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, email: true, name: true },
-  })) as PublicUser[];
-  return NextResponse.json(users);
+  try {
+    const result = await pool.query('SELECT id, email, name FROM "User" ORDER BY name');
+    return NextResponse.json(result.rows);
+  } catch (error) {
+    console.error("GET /api/users error:", error);
+    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+  }
 }
